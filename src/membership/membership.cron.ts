@@ -16,8 +16,8 @@ export class MembershipCron {
     private readonly membershipService: MembershipService,
   ) {}
 
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
-  // @Cron(CronExpression.EVERY_30_SECONDS)
+  // @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  @Cron(CronExpression.EVERY_30_SECONDS)
   async handleCron() {
     try {
       const memberships = await this.membershipService.findAll();
@@ -26,12 +26,11 @@ export class MembershipCron {
       for (const membership of memberships) {
         const dueDate = new Date(membership.dueDate);
         const reminderDate = new Date(dueDate.setDate(dueDate.getDate() - 7)); // Subtract 7 days
-
         const invoiceLink = `https://fitnessplus.com/invoices/${membership.id}`;
         // For new members (first month)
         if (
           membership.isFirstMonth &&
-          currentDate.toDateString() === reminderDate.toDateString()
+          currentDate.toDateString() <= reminderDate.toDateString()
         ) {
           await this.emailService.sendFirstMonthReminder(
             membership.email,
